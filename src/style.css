@@ -1,0 +1,127 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+body {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.pet-stage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+.pet {
+  position: relative;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  touch-action: none;
+  image-rendering: pixelated;
+  /* filter: drop-shadow(0 4px 0 rgb(0 0 0 / 12%)); */
+}
+
+.pet:focus,
+.pet:focus-visible {
+  outline: none;
+}
+
+.pet.drag {
+  cursor: grabbing;
+}
+
+/* Spritesheet orizzontale: steps() scatta da un frame all'altro */
+.sprite {
+  display: block;
+  width: var(--size);
+  height: var(--size);
+  background-image: var(--src);
+  background-size: var(--sheet) var(--size);
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  animation: sprite-play var(--duration) steps(var(--frames)) infinite;
+}
+
+/* il salto sale e scende nella finestra, in sincronia con i frame */
+.pet.jump {
+  animation: jump-arc var(--duration) linear 1;
+}
+
+@keyframes jump-arc {
+  0% {
+    translate: 0 0;
+    animation-timing-function: ease-out;
+  }
+  45% {
+    translate: 0 -32px;
+    animation-timing-function: ease-in;
+  }
+  100% {
+    translate: 0 0;
+  }
+}
+
+.sprite.once {
+  animation-iteration-count: 1;
+}
+
+.sprite.flip {
+  transform: scaleX(-1);
+}
+
+.pet-heart {
+  position: absolute;
+  top: 0;
+  left: calc(100% - 6px);
+  color: #ff6d9e;
+  font-size: 28px;
+  animation: heart-pop 0.4s ease-out;
+}
+
+/* nella metà destra lo sprite è specchiato: il cuore passa a sinistra */
+.pet-heart.left {
+  left: auto;
+  right: calc(100% - 6px);
+}
+
+@keyframes sprite-play {
+  from {
+    background-position-x: 0;
+  }
+  to {
+    background-position-x: calc(var(--sheet) * -1);
+  }
+}
+
+@keyframes heart-pop {
+  from {
+    opacity: 0;
+    scale: 0.5;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sprite {
+    animation: none;
+  }
+}
