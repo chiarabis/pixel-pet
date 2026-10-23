@@ -4,11 +4,11 @@ Un gatto in pixel art che vive sul desktop di Windows: salta, cammina, corre dov
 
 ## Anteprima
 
-<img src="docs/idle-animated.gif" width="64" alt="Miao!">
+<img src="docs/idle-animated.gif" width="128" alt="Miao!">
 
 | Cammina | Salta | Graffia | Corre |
 |:---:|:---:|:---:|:---:|
-| <img src="docs/walk-animated.gif" width="64" alt="Il gatto cammina"> | <img src="docs/jump-animated.gif" width="64" alt="Il gatto salta"> | <img src="docs/attack-animated.gif" width="64" alt="Il gatto graffia"> | <img src="docs/run-animated.gif" width="64" alt="Il gatto corre"> |
+| <img src="docs/walk-animated.gif" width="128" alt="Il gatto cammina"> | <img src="docs/jump-animated.gif" width="128" alt="Il gatto salta"> | <img src="docs/attack-animated.gif" width="128" alt="Il gatto graffia"> | <img src="docs/run-animated.gif" width="128" alt="Il gatto corre"> |
 
 ## Scarica
 
