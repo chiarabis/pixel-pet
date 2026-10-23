@@ -47,7 +47,7 @@ Il pet compare in basso a destra dello schermo e resta sempre in primo piano.
 
 ## Disinstallare
 
-- **Installato con il Setup:** Impostazioni → App → App installate → Pixel Pet → Disinstalla.
+- **Installato con il Setup:** Impostazioni → App → App installate → PixelPet → Disinstalla.
 - **Versione portatile:** chiudi il pet dal menu (tasto destro → Esci) ed elimina la cartella.
 
 ## Privacy
