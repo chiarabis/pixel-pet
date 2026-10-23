@@ -4,18 +4,18 @@ Un gatto in pixel art che vive sul desktop di Windows: salta, cammina, corre dov
 
 ## Anteprima
 
-<img src="docs/idle-animated.gif" width="128" alt="Miao!">
+<img src="docs/idle-animated.gif" width="64" alt="Miao!">
 
 | Cammina | Salta | Graffia | Corre |
 |:---:|:---:|:---:|:---:|
-| <img src="docs/walk-animated.gif" width="128" alt="Il gatto cammina"> | <img src="docs/jump-animated.gif" width="128" alt="Il gatto salta"> | <img src="docs/attack-animated.gif" width="128" alt="Il gatto graffia"> | <img src="docs/run-animated.gif" width="128" alt="Il gatto corre"> |
+| <img src="docs/walk-animated.gif" width="64" alt="Il gatto cammina"> | <img src="docs/jump-animated.gif" width="64" alt="Il gatto salta"> | <img src="docs/attack-animated.gif" width="64" alt="Il gatto graffia"> | <img src="docs/run-animated.gif" width="64" alt="Il gatto corre"> |
 
 ## Scarica
 
 Vai alla pagina delle [**Releases**](https://github.com/chiarabis/pixel-pet/releases/latest) e scegli uno dei due file:
 
 | File | Per chi | Come si usa |
-|------|---------|-------------|
+|----|----|----|
 | `PixelPet-Setup-x.y.z.exe` | Chi vuole installarlo | Fai doppio clic: si installa da solo, senza permessi di amministratore e senza scelte da fare |
 | `PixelPet-win32-x64-x.y.z.zip` | Chi lo vuole portatile | Estrai lo zip in una cartella qualsiasi e avvia `PixelPet.exe`, senza installare |
 
