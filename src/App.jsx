@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { sprites, FRAME_SIZE, SCALE, NATIVE_FACING } from "./spriteConfig";
+import heart from "./assets/sprites/heart.png";
 
 const DRAG_THRESHOLD = 4;      // px prima di considerarlo un trascinamento
 const AUTO_WALK_DELAY = 10000; // ms senza eventi del mouse prima della camminata
 const RESUME_WALK_DELAY = 4000; // ms dopo la fine dell'hover prima di riprendere la camminata
+const HOVER_SCRATCH_DELAY = 6000; // ms di hover senza click dopo cui il pet graffia
+const SCRATCH_CLICKS = 6;         // click di fila dopo cui il pet graffia
+const CLICK_STREAK_GAP = 2000;    // ms massimi tra un click e il successivo perché contino "di fila"
 
 export default function App() {
-    // idle | drag | jump | walk
+    // idle | drag | jump | walk | wallScratch | run | scratch
     const [action, setAction] = useState("idle");
     const [isHovered, setIsHovered] = useState(false);
     const [facing, setFacing] = useState(NATIVE_FACING);
@@ -21,11 +25,20 @@ export default function App() {
     const jumpTimeout = useRef(null);
     const walkTimeout = useRef(null);
     const resumeTimeout = useRef(null);
+    const hoverScratchTimeout = useRef(null);
+    const clickStreak = useRef(0);
+    const lastClickAt = useRef(0);
     const isWalkPaused = useRef(false); // camminata fermata dall'hover, da riprendere
+    const isPlaySelecting = useRef(false); // "Giochiamo": si aspetta il click sullo schermo
 
     function changeAction(next) {
         actionRef.current = next;
         setAction(next);
+    }
+
+    // la pausa col graffio contro il bordo fa parte della camminata
+    function isWalking() {
+        return actionRef.current === "walk" || actionRef.current === "wallScratch";
     }
 
     // Camminata automatica: parte dopo AUTO_WALK_DELAY ms senza eventi del mouse.
@@ -38,7 +51,7 @@ export default function App() {
 
     function startWalk() {
         // con il mouse fermo sopra il pet non si muove
-        if (actionRef.current !== "idle" || hoverRef.current) {
+        if (actionRef.current !== "idle" || hoverRef.current || isPlaySelecting.current) {
             scheduleWalk();
             return;
         }
@@ -58,6 +71,35 @@ export default function App() {
         });
     }
 
+    // Troppe carezze: il pet si stufa e graffia. Succede con il mouse fermo sopra di lui per
+    // HOVER_SCRATCH_DELAY ms senza click, oppure dopo SCRATCH_CLICKS click di fila.
+    function armHoverScratch() {
+        clearTimeout(hoverScratchTimeout.current);
+
+        if (!hoverRef.current) return;
+
+        hoverScratchTimeout.current = setTimeout(() => {
+            if (hoverRef.current && actionRef.current === "idle") startScratch();
+        }, HOVER_SCRATCH_DELAY);
+    }
+
+    function startScratch() {
+        const { frames, fps } = sprites.scratch;
+
+        clearTimeout(jumpTimeout.current); // usato anche come timer di fine azione per il graffio
+        clearTimeout(hoverScratchTimeout.current);
+        clickStreak.current = 0;
+
+        window.petAPI?.cancelJump?.();
+        changeAction("scratch");
+
+        jumpTimeout.current = setTimeout(() => {
+            changeAction("idle");
+            scheduleWalk();
+            armHoverScratch();
+        }, (frames / fps) * 1000);
+    }
+
     // Trascinamento e inattività si seguono a livello di window, non sul bottone:
     // la finestra si muove sotto il cursore e il pointer capture da solo non è affidabile.
     useEffect(() => {
@@ -70,6 +112,7 @@ export default function App() {
             window.petAPI?.stopDrag();
             changeAction("idle");
             scheduleWalk();
+            armHoverScratch();
         }
 
         function handleMove(event) {
@@ -100,6 +143,35 @@ export default function App() {
 
         const offWalkDirection = window.petAPI?.onWalkDirection?.(setFacing);
 
+        // il main ferma la camminata a un bordo per graffiare (a volte), poi la fa ripartire
+        const offWalkScratch = window.petAPI?.onWalkScratch?.(({ active }) => {
+            if (active && actionRef.current === "walk") changeAction("wallScratch");
+            else if (!active && actionRef.current === "wallScratch") changeAction("walk");
+        });
+
+        // "Giochiamo" dal menu: il main avvisa quando aspetta il click, quando il pet corre e quando arriva
+        const offPlay = window.petAPI?.onPlay?.((event) => {
+            if (event.type === "select") {
+                isPlaySelecting.current = true;
+                isWalkPaused.current = false;
+                clearTimeout(resumeTimeout.current);
+                clearTimeout(jumpTimeout.current);
+                if (actionRef.current !== "idle") changeAction("idle");
+            } else if (event.type === "run") {
+                isPlaySelecting.current = false;
+                clearTimeout(walkTimeout.current);
+                clearTimeout(jumpTimeout.current);
+                setFacing(event.direction > 0 ? "right" : "left");
+                changeAction("run");
+            } else {
+                // "end" a corsa finita, "cancel" se l'overlay è stato chiuso senza scegliere
+                isPlaySelecting.current = false;
+                setFacing(NATIVE_FACING);
+                changeAction("idle");
+                scheduleWalk();
+            }
+        });
+
         window.addEventListener("pointermove", handleMove);
         window.addEventListener("pointerup", endPress);
         window.addEventListener("pointercancel", endPress);
@@ -115,9 +187,12 @@ export default function App() {
             window.removeEventListener("mouseup", endPress);
             window.removeEventListener("blur", endPress);
             offWalkDirection?.();
+            offWalkScratch?.();
+            offPlay?.();
             clearTimeout(walkTimeout.current);
             clearTimeout(jumpTimeout.current);
             clearTimeout(resumeTimeout.current);
+            clearTimeout(hoverScratchTimeout.current);
             window.petAPI?.cancelWalk(true);
             window.petAPI?.stopDrag();
         };
@@ -146,16 +221,19 @@ export default function App() {
         setIsHovered(true);
         clearTimeout(resumeTimeout.current);
 
-        if (actionRef.current === "walk") {
+        if (isWalking()) {
             window.petAPI?.cancelWalk(false);
             isWalkPaused.current = true;
             changeAction("idle");
         }
+
+        armHoverScratch();
     }
 
     function handleHoverEnd() {
         hoverRef.current = false;
         setIsHovered(false);
+        clearTimeout(hoverScratchTimeout.current);
 
         if (isWalkPaused.current) {
             clearTimeout(resumeTimeout.current);
@@ -172,9 +250,13 @@ export default function App() {
         isWalkPaused.current = false;
         clearTimeout(resumeTimeout.current);
 
-        // se stava camminando, si ferma dov'è
-        if (actionRef.current === "walk") {
+        // se stava camminando o correndo, si ferma dov'è
+        if (isWalking()) {
             window.petAPI?.cancelWalk(true);
+            setFacing(NATIVE_FACING);
+            changeAction("idle");
+        } else if (actionRef.current === "run") {
+            window.petAPI?.cancelRun();
             setFacing(NATIVE_FACING);
             changeAction("idle");
         }
@@ -188,30 +270,90 @@ export default function App() {
         hasDragged.current = false;
     }
 
-    // click senza trascinamento: salto sul posto
+    // tasto destro: apre il menu nativo (costruito nel main)
+    function handleContextMenu(event) {
+        event.preventDefault();
+
+        isWalkPaused.current = false;
+        clearTimeout(resumeTimeout.current);
+
+        // se stava camminando, si ferma dov'è
+        if (isWalking()) {
+            window.petAPI?.cancelWalk(true);
+            changeAction("idle");
+        } else if (actionRef.current === "run") {
+            window.petAPI?.cancelRun();
+            setFacing(NATIVE_FACING);
+            changeAction("idle");
+        }
+
+        window.petAPI?.showMenu?.();
+    }
+
+    // click senza trascinamento: salto in avanti
     function handleClick() {
         // il click che segue un trascinamento non è un salto
         if (hasDragged.current) {
             hasDragged.current = false;
             return;
         }
+        // mentre graffia i click non contano
+        if (actionRef.current === "scratch") return;
+
+        // ogni click riparte il conto dell'hover; molti click di fila fanno graffiare il pet
+        armHoverScratch();
+
+        const now = Date.now();
+        clickStreak.current = now - lastClickAt.current <= CLICK_STREAK_GAP ? clickStreak.current + 1 : 1;
+        lastClickAt.current = now;
+
+        if (clickStreak.current >= SCRATCH_CLICKS) {
+            startScratch();
+            return;
+        }
+
         if (actionRef.current !== "idle") return;
 
         const { frames, fps } = sprites.jump;
+        const duration = (frames / fps) * 1000;
+
+        // salta in avanti, cioè nel verso in cui guarda lo sprite (specchiato nella metà destra)
+        const forward = NATIVE_FACING === "right" ? 1 : -1;
+        const direction = onRightHalf ? -forward : forward;
 
         changeAction("jump");
+        window.petAPI?.jump?.({ direction, duration });
 
         jumpTimeout.current = setTimeout(() => {
             changeAction("idle");
             scheduleWalk();
-        }, (frames / fps) * 1000);
+        }, duration);
     }
+
 
     const sprite = sprites[action];
     const size = FRAME_SIZE * SCALE;
     // in camminata guarda dove va; negli altri stati dipende dalla metà dello schermo
-    const flipped = action === "walk" ? facing !== NATIVE_FACING : onRightHalf;
+    // (contro il muro guarda il muro, cioè dove stava andando)
+    const isTravelling = action === "walk" || action === "wallScratch" || action === "run";
+    const flipped = isTravelling ? facing !== NATIVE_FACING : onRightHalf;
     const showHeart = isHovered && action === "idle";
+
+    // Comunica al main dove sta lo sprite nella finestra e se è specchiato (il fumetto ci allinea la punta).
+    // Si rimisura a ogni cambio di stato o di specchio, perché lo sprite viene ricreato.
+    useEffect(() => {
+        const element = document.querySelector(".sprite");
+        if (!element) return;
+
+        const rect = element.getBoundingClientRect();
+
+        window.petAPI?.setSpriteLayout?.({
+            left: rect.left,
+            top: rect.top,
+            size: rect.width,
+            flipped,
+        });
+    }, [action, flipped]);
 
     return (
         <main className="pet-stage">
@@ -222,6 +364,7 @@ export default function App() {
             title="Miao!"
             style={{ "--duration": `${sprite.frames / sprite.fps}s` }}
             onClick={handleClick}
+            onContextMenu={handleContextMenu}
             onPointerDown={handlePointerDown}
             onPointerEnter={handleHoverStart}
             onPointerMove={() => {
@@ -242,9 +385,13 @@ export default function App() {
                 }}
             />
             {showHeart && (
-            <span className={`pet-heart${onRightHalf ? " left" : ""}`} aria-hidden="true">
-                ♥
-            </span>
+                <img
+                    src={heart}
+                    className={`pet-heart${onRightHalf ? " left" : ""}`}
+                    alt="Heart"
+                    aria-hidden="true"
+                    draggable={false}
+                />
             )}
         </button>
         </main>

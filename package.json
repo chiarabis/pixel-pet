@@ -1,5 +1,6 @@
 {
   "name": "pixel-pet",
+  "productName": "Pixel Pet",
   "version": "1.0.0",
   "description": "Pixel Pet desktop app",
   "type": "module",
@@ -7,19 +8,26 @@
   "scripts": {
     "dev": "concurrently -k \"vite --host 127.0.0.1\" \"wait-on http://127.0.0.1:5173 && electron .\"",
     "build": "vite build",
-    "start": "electron ."
+    "start": "electron .",
+    "package": "vite build && electron-forge package",
+    "make": "vite build && electron-forge make",
+    "make:win": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-installer.ps1"
   },
   "keywords": [],
-  "author": "",
+  "author": "chiarabis",
   "license": "ISC",
   "dependencies": {
-    "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+    "electron-squirrel-startup": "^1.0.1"
   },
   "devDependencies": {
+    "@electron-forge/cli": "^8.0.1",
+    "@electron-forge/maker-squirrel": "^8.0.1",
+    "@electron-forge/maker-zip": "^8.0.1",
     "@vitejs/plugin-react": "^6.1.2",
     "concurrently": "^10.0.6",
     "electron": "^45.0.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "vite": "^8.3.5",
     "wait-on": "^9.5.1"
   }

@@ -17,7 +17,9 @@ export const sprites = {
   drag:   { src: idle,   frames: 7, fps: 6 },
   jump:   { src: jump,   frames: 7, fps: 12, once: true },
   walk:   { src: walk,   frames: 7, fps: 10 },
-  // non ancora usati nei comportamenti
   run:    { src: run,    frames: 7, fps: 14 },
-  attack: { src: attack, frames: 3, fps: 8 },
+  // il graffio è l'animazione "attack" del pack (3 frame): 3 / 7 fps ≈ 0,43 s
+  scratch: { src: attack, frames: 3, fps: 7, once: true },
+  // stesso graffio ma in loop: contro il bordo dello schermo dura circa un secondo
+  wallScratch: { src: attack, frames: 3, fps: 7 },
 };
