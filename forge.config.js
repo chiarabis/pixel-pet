@@ -13,11 +13,14 @@ export default {
     icon: "./build/icon",
     asar: true,
     // Nell'app finale entrano solo package.json, electron/, dist/ (creata da `vite build`),
-    // CREDITS.md e le dipendenze di runtime: tutto il resto è codice sorgente o strumenti di sviluppo.
+    // CREDITS.md, LICENSE e le dipendenze di runtime: tutto il resto è codice sorgente o strumenti di sviluppo.
     ignore: [
       /^\/src($|\/)/,
       /^\/build($|\/)/,
       /^\/scripts($|\/)/,
+      // GIF e testi per la pagina GitHub: servono nel repository, non nell'app
+      /^\/docs($|\/)/,
+      /^\/README\.md$/,
       /^\/out($|\/)/,
       /^\/\.claude($|\/)/,
       /^\/\.git($|\/)/,

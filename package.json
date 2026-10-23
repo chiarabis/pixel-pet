@@ -15,7 +15,7 @@
   },
   "keywords": [],
   "author": "chiarabis",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "electron-squirrel-startup": "^1.0.1"
   },
