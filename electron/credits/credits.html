@@ -4,11 +4,16 @@
     <meta charset="UTF-8" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'none'; style-src 'unsafe-inline'"
+      content="default-src 'none'; style-src 'unsafe-inline'; font-src file:"
     />
     <title>Crediti · Pixel Pet</title>
     <!-- Contenuto allineato a CREDITS.md: se cambi uno, aggiorna anche l'altro -->
     <style>
+      @font-face {
+        font-family: "VT323";
+        src: url("../fonts/VT323-Regular.ttf") format("truetype");
+      }
+
       :root {
         --ink: #49415f;
         --paper: #fbf9ff;
@@ -20,17 +25,17 @@
         padding: 24px 28px 32px;
         background: var(--paper);
         color: var(--ink);
-        font: 14px/1.5 system-ui, sans-serif;
+        font: 20px/1.2 "VT323", system-ui, sans-serif;
       }
 
       h1 {
         margin: 0 0 4px;
-        font-size: 22px;
+        font-size: 32px;
       }
 
       h2 {
         margin: 24px 0 6px;
-        font-size: 16px;
+        font-size: 24px;
       }
 
       p {
@@ -53,7 +58,7 @@
 
       .note {
         opacity: 0.75;
-        font-size: 13px;
+        font-size: 18px;
       }
     </style>
   </head>
@@ -61,7 +66,7 @@
     <h1>Crediti</h1>
     <p>Pixel Pet usa grafica realizzata da altri autori. Grazie. \^o^/</p>
 
-    <h2>Gatto grigio (sprite)</h2>
+    <h3>Gatto grigio (sprite)</h3>
     <ul>
       <li><strong>Titolo:</strong> Gray cat asset pack</li>
       <li><strong>Autore:</strong> Krystsina Staselovich (utente OpenGameArt: skristi)</li>
@@ -82,19 +87,15 @@
     </ul>
     <p class="note">Questo progetto non è approvato né sostenuto dall'autrice.</p>
 
-    <h2>Cuore (sprite)</h2>
+    <h3>Font VT323</h3>
     <ul>
-      <li><strong>Titolo:</strong> Pixel Heart</li>
-      <li><strong>Autore:</strong> Clixel</li>
+      <li><strong>Autori:</strong> The VT323 Project Authors (Peter Hull)</li>
       <li>
         <strong>Fonte:</strong>
-        <a href="https://clixel.itch.io/heart" target="_blank">clixel.itch.io/heart</a>
+        <a href="https://fonts.google.com/specimen/VT323" target="_blank">fonts.google.com/specimen/VT323</a>
       </li>
-      <li>
-        <strong>Condizioni d'uso indicate dall'autore:</strong> "This asset is free for both personal and commercial
-        projects. You can use and modify it freely. Attribution is not required but appreciated."
-      </li>
-      <li><strong>Modifiche:</strong> ingrandito ×2, senza sfumature.</li>
+      <li><strong>Licenza:</strong> SIL Open Font License 1.1</li>
+      <li><strong>Uso:</strong> nel fumetto del pet, nella finestra dei Crediti e in quella di "Giochiamo", senza modifiche.</li>
     </ul>
   </body>
 </html>

@@ -10,13 +10,12 @@ Pixel Pet usa grafica realizzata da altri autori. Grazie. \^o^/
 - **Licenza:** CC BY 4.0 — <https://creativecommons.org/licenses/by/4.0/>
 - **Modifiche:** gli sprite sono usati senza ritocchi ai pixel. Vengono ingranditi (×4, senza sfumature) e, nella metà destra dello schermo o quando il pet cammina verso sinistra, specchiati orizzontalmente. Alcuni stati (per esempio `idle` e `jump`) riusano le animazioni del pack in modo diverso dall'originale.
 
-## Cuore (sprite)
+## Font VT323
 
-- **Titolo:** Pixel Heart
-- **Autore:** Clixel
-- **Fonte:** <https://clixel.itch.io/heart>
-- **Condizioni d'uso indicate dall'autore:** "This asset is free for both personal and commercial projects. You can use and modify it freely. Attribution is not required but appreciated."
-- **Modifiche:** ingrandito ×2, senza sfumature.
+- **Autori:** The VT323 Project Authors (Peter Hull)
+- **Fonte:** <https://fonts.google.com/specimen/VT323>
+- **Licenza:** SIL Open Font License 1.1 — testo in `electron/fonts/VT323-OFL.txt`
+- **Uso:** nel fumetto del pet, nella finestra dei Crediti e in quella di "Giochiamo", senza modifiche.
 
 ## Codice
 

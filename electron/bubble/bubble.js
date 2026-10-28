@@ -1,6 +1,14 @@
 import { BrowserWindow, ipcMain, screen } from "electron";
 import path from "node:path";
-import { WINDOW_SIZE, getPetWindow, getSpriteLayout, setSpriteLayout, sendPlayEvent } from "../shared.js";
+import {
+    WINDOW_SIZE,
+    getPetWindow,
+    getSpriteLayout,
+    setSpriteLayout,
+    sendPlayEvent,
+    isAlwaysOnTop,
+    onAlwaysOnTopChange,
+} from "../shared.js";
 import { haltPet } from "../movement/halt.js";
 
 
@@ -38,7 +46,7 @@ function createBubbleWindow() {
         skipTaskbar: true,
         hasShadow: false,
         show: false,
-        alwaysOnTop: true,
+        alwaysOnTop: isAlwaysOnTop(),
         webPreferences: {
             preload: path.join(import.meta.dirname, "bubble-preload.cjs"),
             contextIsolation: true,
@@ -47,7 +55,7 @@ function createBubbleWindow() {
         },
     });
 
-    bubbleWin.setAlwaysOnTop(true, "floating");
+    bubbleWin.setAlwaysOnTop(isAlwaysOnTop(), "floating");
     bubbleWin.loadFile(path.join(import.meta.dirname, "bubble.html"));
 
     bubbleWin.webContents.once("did-finish-load", () => {
@@ -160,6 +168,11 @@ function cancelBubbleInput() {
 }
 
 export function registerBubble() {
+    // il fumetto segue il pet: se il pet non sta più sopra le altre finestre, nemmeno lui
+    onAlwaysOnTopChange((enabled) => {
+        if (bubbleWin && !bubbleWin.isDestroyed()) bubbleWin.setAlwaysOnTop(enabled, "floating");
+    });
+
     // il renderer dice dove sta lo sprite nella finestra e se è specchiato
     ipcMain.on("pet:sprite-layout", (_event, layout) => {
         const { left, top, size, flipped } = layout ?? {};

@@ -10,7 +10,11 @@ Un gatto in pixel art che vive sul desktop di Windows: salta, cammina, corre dov
 |:---:|:---:|:---:|:---:|
 | <img src="docs/walk-animated.gif" width="128" alt="Il gatto cammina"> | <img src="docs/jump-animated.gif" width="128" alt="Il gatto salta"> | <img src="docs/attack-animated.gif" width="128" alt="Il gatto graffia"> | <img src="docs/run-animated.gif" width="128" alt="Il gatto corre"> |
 
-## Scarica
+| Coccole | Fammi parlare |
+|:---:|:---:|
+| <img src="docs/heart-animated.gif" width="144" alt="Il gatto riceve una carezza e compare un cuore"> | <img src="docs/bubble-animated.gif" width="155" alt="Il gatto parla"> |
+
+## Installazione
 
 Vai alla pagina delle [**Releases**](https://github.com/chiarabis/pixel-pet/releases/latest) e scegli uno dei due file:
 
@@ -19,7 +23,8 @@ Vai alla pagina delle [**Releases**](https://github.com/chiarabis/pixel-pet/rele
 | `PixelPet-Setup-x.y.z.exe` | Chi vuole installarlo | Fai doppio clic: si installa da solo, senza permessi di amministratore e senza scelte da fare |
 | `PixelPet-win32-x64-x.y.z.zip` | Chi lo vuole portatile | Estrai lo zip in una cartella qualsiasi e avvia `PixelPet.exe`, senza installare |
 
-**Requisiti:** Windows 10 o 11, 64 bit.
+> [!NOTE]
+> **Requisiti:** ![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat&logo=windows&logoColor=white) 10 o 11, 64 bit. 
 
 ### "Windows ha protetto il PC"
 
@@ -28,11 +33,12 @@ Al primo avvio Windows può mostrare questo avviso blu (SmartScreen). Succede pe
 1. Clicca su **Ulteriori informazioni**.
 2. Clicca su **Esegui comunque**.
 
-Alcuni antivirus possono segnalare per errore un programma nuovo e poco diffuso: se succede, è un falso positivo.
+> [!WARNING]
+> Alcuni antivirus possono segnalare per errore un programma nuovo e poco diffuso: se succede, è un falso positivo.
 
-## Come si usa
+## Interazione
 
-Il pet compare in basso a destra dello schermo e resta sempre in primo piano.
+Il pet compare in basso a destra dello schermo.
 
 - **Passa il mouse sopra di lui:** compare un cuoricino.
 - **Clicca:** salta in avanti.
@@ -41,22 +47,29 @@ Il pet compare in basso a destra dello schermo e resta sempre in primo piano.
 - **Lascialo in pace:** dopo 10 secondi senza che tu tocchi il mouse su di lui, attraversa lo schermo camminando. Ogni tanto si ferma a un bordo a graffiare. Se ci passi sopra con il mouse si ferma, e riparte dopo qualche secondo.
 - **Tasto destro:** apre il menu.
   - **Giochiamo:** clicca un punto qualsiasi dello schermo e il pet ci corre. `Esc` annulla.
-  - **Fammi parlare:** scrivi una frase di al massimo 6 parole e il pet la ripete in un fumetto ogni 10 secondi. Passando il mouse sul fumetto compare una **✕** per toglierlo.
+  - **Fammi parlare:** scrivi una frase di al massimo 6 parole e il pet la ripete in un fumetto ogni 10 secondi. Passando il mouse sul fumetto compare una **✖️** per toglierlo.
+  - **Sempre in primo piano:** se è **✔️** la finestra del pet resta in primo piano.
+  - **Offri un caffè ☕:** apre nel browser la pagina [Ko-fi](https://ko-fi.com/chiarabis) dell'autrice. È facoltativo.
   - **Crediti:** chi ha disegnato gli sprite.
   - **Esci:** chiude Pixel Pet.
 
-## Disinstallare
+## Come disinstallare
 
 - **Installato con il Setup:** Impostazioni → App → App installate → PixelPet → Disinstalla.
 - **Versione portatile:** chiudi il pet dal menu (tasto destro → Esci) ed elimina la cartella.
 
 ## Privacy
 
-Pixel Pet non raccoglie né invia nessun dato e non si collega a internet. Gli unici link sono quelli nella finestra dei crediti, che si aprono nel browser solo se li clicchi.
+Pixel Pet non raccoglie né invia nessun dato e non si collega a internet. Gli unici link sono quelli nella finestra dei crediti e la voce del caffè nel menu, che si aprono nel browser solo se li clicchi.
 
 ## Per sviluppatori
 
-Il progetto usa [Electron](https://www.electronjs.org/), React e Vite, ed è impacchettato con [Electron Forge](https://www.electronforge.io/).
+Il progetto usa Electron, React e Vite, ed è impacchettato con [Electron Forge](https://www.electronforge.io/).
+
+![Electron.js](https://img.shields.io/badge/Electron-%23191970.svg?style=for-the-badge&logo=Electron&logoColor=white)
+![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)
+![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
 
 ```bash
 npm install
@@ -69,17 +82,33 @@ Per creare installer e zip (in `out/make/`):
 npm run make
 ```
 
-Se il percorso della cartella del progetto contiene caratteri speciali (per esempio un'emoji), la creazione dell'installer Windows fallisce: gli strumenti di Squirrel non li leggono. In quel caso usa `npm run make:win`, che costruisce da una copia temporanea in un percorso semplice e riporta i file in `out/make/`.
+> Se il percorso della cartella del progetto contiene caratteri speciali (per esempio un'emoji), la creazione dell'installer Windows fallisce: gli strumenti di Squirrel non li leggono. In quel caso usa `npm run make:win`, che costruisce da una copia temporanea in un percorso semplice e riporta i file in `out/make/`.
 
-Struttura di `electron/`: `movement/` (trascinamento, salto, camminata, corsa), `play/` ("Giochiamo"), `bubble/` ("Fammi parlare"), `credits/`.
+Struttura di `electron/`:
+  - `main.js`: avvio dell'app e finestra del pet.
+  - `menu.js`: menu del tasto destro.
+  - `preload.cjs`: ponte tra la finestra del pet e il processo principale.
+  - `settings.js`: impostazioni salvate (per esempio "Sempre in primo piano").
+  - `log.js`: registro in `%APPDATA%\Pixel Pet\logs\pixel-pet.log`, utile per capire cosa non va.
+  - `shared.js`: stato condiviso tra i vari moduli.
+  - `movement/`: trascinamento, salto, camminata, corsa.
+  - `play/`: "Giochiamo".
+  - `bubble/`: "Fammi parlare".
+  - `credits/`: finestra dei Crediti.
+  - `fonts/`: font VT323, con la sua licenza.
 
 ## Crediti e licenze
 
-- **Gatto grigio** (sprite): *Gray cat asset pack* di Krystsina Staselovich, [OpenGameArt](https://opengameart.org/content/gray-cat-asset-pack), licenza [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Gli sprite sono ingranditi e a volte specchiati.
-- **Cuore** (sprite): *Pixel Heart* di Clixel, [itch.io](https://clixel.itch.io/heart), uso libero anche commerciale.
+**Gatto grigio** (sprite): *Gray cat asset pack* di Krystsina Staselovich, [OpenGameArt](https://opengameart.org/content/gray-cat-asset-pack), licenza [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Gli sprite sono ingranditi e a volte specchiati.
 
 Il dettaglio è in [CREDITS.md](CREDITS.md) e nel menu **Crediti** dell'app.
 
-Il **codice** di Pixel Pet è sotto [licenza MIT](LICENSE). Gli **sprite** restano soggetti alle licenze dei rispettivi autori e non sono coperti dalla licenza MIT.
+Il **codice** di Pixel Pet è sotto [licenza MIT](LICENSE). 
+Gli **sprite** restano soggetti alle licenze dei rispettivi autori e non sono coperti dalla licenza MIT. Pixel Pet non è approvato né sostenuto dagli autori degli sprite.
 
-Pixel Pet non è approvato né sostenuto dagli autori degli sprite.
+Se Pixel Pet ti piace e vuoi offrirmi un caffè: [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/chiarabis)
+
+---
+
+![Releases](https://img.shields.io/github/v/release/chiarabis/pixel-pet)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)

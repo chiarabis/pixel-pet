@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { sprites, FRAME_SIZE, SCALE, NATIVE_FACING } from "./spriteConfig";
-import heart from "./assets/sprites/heart.png";
+import heart from "./assets/sprites/cuore.png";
 
 const DRAG_THRESHOLD = 4;      // px prima di considerarlo un trascinamento
 const AUTO_WALK_DELAY = 10000; // ms senza eventi del mouse prima della camminata
@@ -71,8 +71,7 @@ export default function App() {
         });
     }
 
-    // Troppe carezze: il pet si stufa e graffia. Succede con il mouse fermo sopra di lui per
-    // HOVER_SCRATCH_DELAY ms senza click, oppure dopo SCRATCH_CLICKS click di fila.
+    // Troppe carezze: il pet si stufa e graffia. Succede con il mouse fermo sopra di lui per HOVER_SCRATCH_DELAY ms senza click, oppure dopo SCRATCH_CLICKS click di fila.
     function armHoverScratch() {
         clearTimeout(hoverScratchTimeout.current);
 

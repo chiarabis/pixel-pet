@@ -4,10 +4,15 @@
     <meta charset="UTF-8" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'"
+      content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; font-src file:; img-src file:"
     />
     <title>Giochiamo</title>
     <style>
+      @font-face {
+        font-family: "VT323";
+        src: url("../fonts/VT323-Regular.ttf") format("truetype");
+      }
+
       html,
       body {
         width: 100%;
@@ -29,15 +34,50 @@
         border-radius: 999px;
         background: rgb(30 27 45 / 85%);
         color: #fff;
-        font: 14px system-ui, sans-serif;
+        font: 20px "VT323", system-ui, sans-serif;
         pointer-events: none;
+      }
+
+      .ball {
+        position: fixed;
+        top: -10px;
+        left: -10px;
+        display: none;
+        pointer-events: none;
+      }
+
+      .ball img {
+        display: block;
+        width: 24px;
+        height: 24px;
+        image-rendering: pixelated;
+        animation: ball-spin 6s linear infinite;
+      }
+
+      @keyframes ball-spin {
+        to {
+          rotate: 360deg;
+        }
       }
     </style>
   </head>
   <body>
     <div class="hint">Clicca dove vuoi che vada · Esc per annullare</div>
 
+    <div class="ball" id="ball"><img src="palla.png" alt="ball" draggable="false" /></div>
+
     <script>
+      const BALL_OFFSET = 14;
+      const ball = document.getElementById("ball");
+
+      window.addEventListener("pointermove", (event) => {
+        ball.style.display = "block";
+        ball.style.translate = `${event.clientX + BALL_OFFSET}px ${event.clientY + BALL_OFFSET}px`;
+      });
+      document.addEventListener("pointerleave", () => {
+        ball.style.display = "none";
+      });
+
       window.addEventListener("pointerdown", (event) => {
         if (event.button === 0) window.overlayAPI.pick();
         else window.overlayAPI.cancel();
