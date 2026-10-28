@@ -106,7 +106,7 @@ Il dettaglio è in [CREDITS.md](CREDITS.md) e nel menu **Crediti** dell'app.
 Il **codice** di Pixel Pet è sotto [licenza MIT](LICENSE). 
 Gli **sprite** restano soggetti alle licenze dei rispettivi autori e non sono coperti dalla licenza MIT. Pixel Pet non è approvato né sostenuto dagli autori degli sprite.
 
-Se Pixel Pet ti piace e vuoi offrirmi un caffè: [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/chiarabis)
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/chiarabis)
 
 ---
 
