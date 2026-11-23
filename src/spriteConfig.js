@@ -16,6 +16,8 @@ export const sprites = {
   idle:   { src: idle,   frames: 7, fps: 6 },
   drag:   { src: idle,   frames: 7, fps: 6 },
   jump:   { src: jump,   frames: 7, fps: 12, once: true },
+  // pausa della sveglia: lo stesso salto, in loop e sul posto
+  alarm:  { src: jump,   frames: 7, fps: 12 },
   walk:   { src: walk,   frames: 7, fps: 10 },
   run:    { src: run,    frames: 7, fps: 14 },
   // il graffio è l'animazione "attack" del pack (3 frame): 3 / 7 fps ≈ 0,43 s

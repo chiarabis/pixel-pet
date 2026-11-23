@@ -65,6 +65,11 @@ body {
   animation: jump-arc var(--duration) linear 1;
 }
 
+/* pausa della sveglia: salta in continuazione sul posto, finché non lo si clicca */
+.pet.alarm {
+  animation: jump-arc var(--duration) linear infinite;
+}
+
 @keyframes jump-arc {
   0% {
     translate: 0 0;

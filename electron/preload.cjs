@@ -17,6 +17,14 @@ contextBridge.exposeInMainWorld("petAPI", {
   },
   cancelRun: () => ipcRenderer.send("pet:run-cancel"),
 
+  // Pausa della sveglia: eventi { type: "start" | "end" } dal main; dismissAlarm quando si clicca il pet
+  onAlarm: (callback) => {
+    const listener = (_event, data) => callback(data);
+    ipcRenderer.on("pet:alarm", listener);
+    return () => ipcRenderer.removeListener("pet:alarm", listener);
+  },
+  dismissAlarm: () => ipcRenderer.send("pet:alarm-dismiss"),
+
   // Sposta la finestra in orizzontale durante il salto: direction = 1 destra, -1 sinistra
   jump: (options) => ipcRenderer.send("pet:jump", options),
   cancelJump: () => ipcRenderer.send("pet:jump-cancel"),

@@ -34,6 +34,12 @@ let pendingShow = null;
 let isBubbleInput = false;
 let greeting = null;
 
+// Pausa della sveglia: il fumetto resta finché la pausa non viene chiusa, e sta più in alto
+// di quanto il gatto sale saltando (translate di jump-arc in style.css) per non coprirgli la testa.
+const ALARM_LIFT = 32;
+let alarmText = null;
+let alarmCloseHandler = null;
+
 function createBubbleWindow() {
     bubbleReady = false;
 
@@ -108,7 +114,7 @@ export function positionBubble() {
 
     const petCenterX = pet.x + WINDOW_SIZE / 2;
     const x = Math.min(area.x + area.width - width, Math.max(area.x, Math.round(petCenterX - width / 2 - BUBBLE_SHIFT_X)));
-    const y = Math.max(area.y, Math.round(earsY - height - BUBBLE_LIFT));
+    const y = Math.max(area.y, Math.round(earsY - height - (alarmText ? ALARM_LIFT : BUBBLE_LIFT)));
 
     bubbleWin.setBounds({ x, y, width, height });
 
@@ -129,8 +135,8 @@ function stopGreeting() {
 }
 
 function showGreeting() {
-    // mentre si scrive una nuova frase il fumetto di input ha la precedenza
-    if (!greeting || isBubbleInput) return;
+    // mentre si scrive una nuova frase, o c'è una pausa, quel fumetto ha la precedenza
+    if (!greeting || isBubbleInput || alarmText) return;
 
     clearTimeout(greeting.hideTimer);
     greeting.hovered = false;
@@ -142,9 +148,32 @@ function showGreeting() {
 
 function hideGreeting() {
     // con il mouse sul fumetto resta, per poter premere la X
-    if (!greeting || greeting.hovered) return;
+    if (!greeting || greeting.hovered || alarmText) return;
 
     hideBubble();
+}
+
+// Fumetto della pausa: resta finché non si chiama hideAlarmBubble. La X del fumetto chiude la pausa
+// (lo decide chi si registra con onAlarmBubbleClose).
+export function showAlarmBubble(text) {
+    // se si stava scrivendo una frase, quel fumetto si chiude
+    if (isBubbleInput) cancelBubbleInput();
+
+    alarmText = text;
+    bubbleTailX = null;
+    pendingShow = "inactive";
+    sendBubbleMode({ mode: "show", text });
+}
+
+export function hideAlarmBubble() {
+    if (!alarmText) return;
+
+    alarmText = null;
+    hideBubble();
+}
+
+export function onAlarmBubbleClose(handler) {
+    alarmCloseHandler = handler;
 }
 
 export function startGreeting(petWin) {
@@ -199,6 +228,9 @@ export function registerBubble() {
             bubbleWin.focus();
         } else if (pendingShow === "inactive") {
             bubbleWin.showInactive();
+            // tra le finestre "sempre in primo piano" conta l'ordine: senza questo, una finestra aperta
+            // dopo l'ultima volta che si è visto il fumetto (e prima di questa) lo copre
+            bubbleWin.moveTop();
         }
         pendingShow = null;
     });
@@ -225,6 +257,12 @@ export function registerBubble() {
     ipcMain.on("bubble:cancel", cancelBubbleInput);
 
     ipcMain.on("bubble:close", () => {
+        // durante una pausa la X chiude la pausa, non la frase del saluto
+        if (alarmText) {
+            alarmCloseHandler?.();
+            return;
+        }
+
         stopGreeting();
         hideBubble();
     });

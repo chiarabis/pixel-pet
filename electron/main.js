@@ -12,6 +12,7 @@ import { registerWalk } from "./movement/walk.js";
 import { registerRun } from "./movement/run.js";
 import { registerPlay } from "./play/play.js";
 import { registerBubble, positionBubble } from "./bubble/bubble.js";
+import { registerAlarm, startAlarmScheduler } from "./alarm/alarm.js";
 
 app.commandLine.appendSwitch("disable-features", "CalculateNativeWinOcclusion");
 
@@ -182,6 +183,7 @@ registerWalk();
 registerRun();
 registerPlay();
 registerBubble();
+registerAlarm();
 registerMenu();
 
 // Squirrel (l'installer Windows) avvia l'app durante installazione e disinstallazione
@@ -202,6 +204,7 @@ if (squirrelStartup || !app.requestSingleInstanceLock()) {
     app.whenReady().then(() => {
         logStartup();
         createWindow();
+        startAlarmScheduler();
     });
 }
 

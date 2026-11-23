@@ -15,6 +15,11 @@ function closeOverlays() {
     overlays = [];
 }
 
+// Una pausa della sveglia interrompe la scelta del punto: il pet viene fermato da chi la chiama
+export function cancelPlaySelection() {
+    closeOverlays();
+}
+
 export function startPlaySelection(petWin) {
     closeOverlays();
     haltPet();

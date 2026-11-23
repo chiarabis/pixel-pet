@@ -10,7 +10,7 @@ const SCRATCH_CLICKS = 6;         // click di fila dopo cui il pet graffia
 const CLICK_STREAK_GAP = 2000;    // ms massimi tra un click e il successivo perché contino "di fila"
 
 export default function App() {
-    // idle | drag | jump | walk | wallScratch | run | scratch
+    // idle | drag | jump | walk | wallScratch | run | scratch | alarm
     const [action, setAction] = useState("idle");
     const [isHovered, setIsHovered] = useState(false);
     const [facing, setFacing] = useState(NATIVE_FACING);
@@ -30,10 +30,42 @@ export default function App() {
     const lastClickAt = useRef(0);
     const isWalkPaused = useRef(false); // camminata fermata dall'hover, da riprendere
     const isPlaySelecting = useRef(false); // "Giochiamo": si aspetta il click sullo schermo
+    const isAlarmRef = useRef(false); // pausa della sveglia: salta finché non lo si clicca
 
     function changeAction(next) {
+        // durante la pausa ogni altra azione aspetta: il pet salta finché il click non la chiude
+        if (isAlarmRef.current && next !== "alarm") return;
+
         actionRef.current = next;
         setAction(next);
+    }
+
+    // il main avvisa quando scatta l'orario della sveglia e quando la pausa finisce
+    function startAlarm() {
+        clearTimeout(walkTimeout.current);
+        clearTimeout(resumeTimeout.current);
+        clearTimeout(jumpTimeout.current);
+        clearTimeout(hoverScratchTimeout.current);
+        isWalkPaused.current = false;
+        isPlaySelecting.current = false;
+        clickStreak.current = 0;
+
+        window.petAPI?.cancelJump?.();
+        window.petAPI?.cancelRun?.();
+        window.petAPI?.cancelWalk?.(true);
+
+        isAlarmRef.current = true;
+        changeAction("alarm");
+    }
+
+    function endAlarm() {
+        if (!isAlarmRef.current) return;
+
+        isAlarmRef.current = false;
+        setFacing(NATIVE_FACING);
+        changeAction("idle");
+        scheduleWalk();
+        armHoverScratch();
     }
 
     // la pausa col graffio contro il bordo fa parte della camminata
@@ -171,6 +203,11 @@ export default function App() {
             }
         });
 
+        const offAlarm = window.petAPI?.onAlarm?.((event) => {
+            if (event.type === "start") startAlarm();
+            else endAlarm();
+        });
+
         window.addEventListener("pointermove", handleMove);
         window.addEventListener("pointerup", endPress);
         window.addEventListener("pointercancel", endPress);
@@ -188,6 +225,7 @@ export default function App() {
             offWalkDirection?.();
             offWalkScratch?.();
             offPlay?.();
+            offAlarm?.();
             clearTimeout(walkTimeout.current);
             clearTimeout(jumpTimeout.current);
             clearTimeout(resumeTimeout.current);
@@ -296,6 +334,13 @@ export default function App() {
             hasDragged.current = false;
             return;
         }
+        // un click durante la pausa della sveglia la chiude (il main toglie il fumetto)
+        if (isAlarmRef.current) {
+            endAlarm();
+            window.petAPI?.dismissAlarm?.();
+            return;
+        }
+
         // mentre graffia i click non contano
         if (actionRef.current === "scratch") return;
 

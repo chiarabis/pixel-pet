@@ -48,6 +48,7 @@ Il pet compare in basso a destra dello schermo.
 - **Tasto destro:** apre il menu.
   - **Giochiamo:** clicca un punto qualsiasi dello schermo e il pet ci corre. `Esc` annulla.
   - **Fammi parlare:** scrivi una frase di al massimo 6 parole e il pet la ripete in un fumetto ogni 10 secondi. Passando il mouse sul fumetto compare una **✖️** per toglierlo.
+  - **Modalità sveglia:** apre una finestra dove accendere o spegnere la sveglia (con l'interruttore **ON/OFF**) e aggiungere, cambiare o togliere gli orari delle pause. Nel menu la voce ha la **✔️** quando la sveglia è accesa. Agli orari scelti il pet salta senza fermarsi e mostra un fumetto "Coffee break ☕", finché non lo clicchi (o clicchi la **✖️** del fumetto), per al massimo un minuto: poi torna normale da solo. Gli orari valgono ogni giorno, finché la sveglia è accesa. Se il PC era spento o in sospensione, la pausa parte comunque se l'orario è passato da meno di 15 minuti.
   - **Sempre in primo piano:** se è **✔️** la finestra del pet resta in primo piano.
   - **Offri un caffè ☕:** apre nel browser la pagina [Ko-fi](https://ko-fi.com/chiarabis) dell'autrice. È facoltativo.
   - **Crediti:** chi ha disegnato gli sprite.
@@ -88,12 +89,13 @@ Struttura di `electron/`:
   - `main.js`: avvio dell'app e finestra del pet.
   - `menu.js`: menu del tasto destro.
   - `preload.cjs`: ponte tra la finestra del pet e il processo principale.
-  - `settings.js`: impostazioni salvate (per esempio "Sempre in primo piano").
+  - `settings.js`: impostazioni salvate (per esempio "Sempre in primo piano" e gli orari della sveglia).
   - `log.js`: registro in `%APPDATA%\Pixel Pet\logs\pixel-pet.log`, utile per capire cosa non va.
   - `shared.js`: stato condiviso tra i vari moduli.
   - `movement/`: trascinamento, salto, camminata, corsa.
   - `play/`: "Giochiamo".
   - `bubble/`: "Fammi parlare".
+  - `alarm/`: modalità sveglia (orari, pausa e finestra per sceglierli).
   - `credits/`: finestra dei Crediti.
   - `fonts/`: font VT323, con la sua licenza.
 

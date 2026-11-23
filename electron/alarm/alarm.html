@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; font-src file:"
+    />
+    <title>Sveglia · Pixel Pet</title>
+    <style>
+      @font-face {
+        font-family: "VT323";
+        src: url("../fonts/VT323-Regular.ttf") format("truetype");
+      }
+
+      :root {
+        --ink: #49415f;
+        --paper: #fbf9ff;
+        --accent: #f28ab3;
+      }
+
+      body {
+        margin: 0;
+        padding: 20px 24px;
+        background: var(--paper);
+        color: var(--ink);
+        font: 20px/1.2 "VT323", system-ui, sans-serif;
+        user-select: none;
+      }
+
+      h2 {
+        margin: 18px 0 8px;
+        font-size: 24px;
+        font-weight: 400;
+      }
+
+      p {
+        margin: 4px 0;
+      }
+
+      .note {
+        opacity: 0.75;
+        font-size: 18px;
+      }
+
+      .switch {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 14px;
+        font-size: 24px;
+        cursor: pointer;
+      }
+
+      /* la casella vera resta nella pagina (tastiera e lettori di schermo) ma non si vede: si vede .track */
+      .switch input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: 0;
+        opacity: 0;
+      }
+
+      /* interruttore pixel: il quadrato scorre da un lato all'altro, con il testo OFF / ON dal lato opposto */
+      .track {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex: none;
+        box-sizing: border-box;
+        width: 76px;
+        height: 28px;
+        margin: 2px;
+        padding: 0 8px;
+        background: #fff;
+        color: var(--ink);
+        font-size: 20px;
+        box-shadow:
+          0 -2px 0 0 var(--ink),
+          0 2px 0 0 var(--ink),
+          -2px 0 0 0 var(--ink),
+          2px 0 0 0 var(--ink);
+      }
+
+      .track::before {
+        content: "";
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        width: 20px;
+        height: 20px;
+        background: var(--ink);
+        transition: left 0.12s steps(3);
+      }
+
+      .track::after {
+        content: "OFF";
+      }
+
+      .switch input:checked ~ .track {
+        justify-content: flex-start;
+        background: var(--accent);
+      }
+
+      .switch input:checked ~ .track::before {
+        left: calc(100% - 24px);
+      }
+
+      .switch input:checked ~ .track::after {
+        content: "ON";
+      }
+
+      .switch:hover .track {
+        filter: brightness(0.96);
+      }
+
+      .switch input:focus-visible ~ .track {
+        outline: 2px dashed var(--ink);
+        outline-offset: 5px;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .track::before {
+          transition: none;
+        }
+      }
+
+      ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      li {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 8px 2px;
+      }
+
+      /* bordo "pixel" come nel fumetto: quattro ombre piene, senza sfocatura */
+      input[type="time"],
+      button {
+        font: 22px/1 "VT323", system-ui, sans-serif;
+        color: var(--ink);
+        border: 0;
+        margin: 2px;
+        padding: 6px 10px;
+        box-shadow:
+          0 -2px 0 0 var(--ink),
+          0 2px 0 0 var(--ink),
+          -2px 0 0 0 var(--ink),
+          2px 0 0 0 var(--ink);
+        background: #fff;
+        outline: none;
+      }
+
+      input[type="time"] {
+        user-select: text;
+      }
+
+      button {
+        background: var(--ink);
+        color: #fff;
+        cursor: pointer;
+      }
+
+      button:hover,
+      button:focus-visible {
+        background: var(--accent);
+        color: var(--ink);
+      }
+
+      .remove {
+        padding: 6px 10px 4px;
+      }
+
+      .empty {
+        margin: 8px 2px;
+        opacity: 0.6;
+      }
+
+      .actions {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-top: 18px;
+      }
+
+      #message {
+        opacity: 0.75;
+      }
+    </style>
+  </head>
+  <body>
+    <label class="switch">
+      <input type="checkbox" id="enabled" role="switch" />
+      <span>Modalità sveglia</span>
+      <span class="track" aria-hidden="true"></span>
+    </label>
+
+    <h2>Pause caffè ☕</h2>
+    <ul id="list"></ul>
+    <p class="empty" id="empty">Nessun orario: aggiungine uno.</p>
+    <button type="button" id="add">+ Aggiungi orario</button>
+
+    <div class="actions">
+      <button type="button" id="save">Salva</button>
+      <span id="message"></span>
+    </div>
+
+    <script>
+      const enabled = document.getElementById("enabled");
+      const list = document.getElementById("list");
+      const empty = document.getElementById("empty");
+      const message = document.getElementById("message");
+
+      const MAX_ROWS = 12;
+      const DEFAULT_TIME = "12:30";
+
+      function updateEmpty() {
+        empty.style.display = list.children.length === 0 ? "block" : "none";
+      }
+
+      function addRow(time) {
+        const row = document.createElement("li");
+
+        const input = document.createElement("input");
+        input.type = "time";
+        input.value = time;
+        input.required = true;
+        input.setAttribute("aria-label", "Orario della pausa");
+
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "remove";
+        remove.title = "Togli questo orario";
+        remove.setAttribute("aria-label", "Togli questo orario");
+        remove.textContent = "×";
+        remove.addEventListener("click", () => {
+          row.remove();
+          updateEmpty();
+        });
+
+        row.append(input, remove);
+        list.append(row);
+        updateEmpty();
+        return input;
+      }
+
+      // il nuovo orario parte tre ore dopo l'ultimo, così non resta uguale a uno già presente
+      function nextTime() {
+        const values = [...list.querySelectorAll("input")].map((input) => input.value).filter(Boolean).sort();
+        if (values.length === 0) return DEFAULT_TIME;
+
+        const [hours, minutes] = values[values.length - 1].split(":").map(Number);
+        return `${String((hours + 3) % 24).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+      }
+
+      document.getElementById("add").addEventListener("click", () => {
+        if (list.children.length >= MAX_ROWS) {
+          message.textContent = `Al massimo ${MAX_ROWS} orari.`;
+          return;
+        }
+
+        message.textContent = "";
+        addRow(nextTime()).focus();
+      });
+
+      // il toggle vale subito; gli orari invece si salvano con "Salva"
+      enabled.addEventListener("change", async () => {
+        const state = await window.alarmAPI.setEnabled(enabled.checked);
+
+        enabled.checked = state.enabled;
+        message.textContent = !state.enabled
+          ? "Sveglia spenta."
+          : state.breaks.length === 0
+            ? "Sveglia accesa: aggiungi un orario e premi Salva."
+            : "Sveglia accesa.";
+      });
+
+      document.getElementById("save").addEventListener("click", async () => {
+        const times = [...list.querySelectorAll("input")].map((input) => input.value).filter(Boolean);
+
+        const saved = await window.alarmAPI.save({
+          enabled: enabled.checked,
+          breaks: times.map((time) => ({ time, kind: "coffee" })),
+        });
+
+        // il main ha tolto eventuali doppioni: si mostra ciò che è stato salvato davvero
+        list.textContent = "";
+        saved.breaks.forEach((item) => addRow(item.time));
+        updateEmpty();
+
+        message.textContent = saved.enabled ? "Salvato. Sveglia accesa." : "Salvato. Sveglia spenta.";
+      });
+
+      window.alarmAPI.get().then((state) => {
+        enabled.checked = state.enabled;
+        state.breaks.forEach((item) => addRow(item.time));
+        updateEmpty();
+      });
+    </script>
+  </body>
+</html>
