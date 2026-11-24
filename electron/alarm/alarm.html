@@ -132,15 +132,60 @@
         list-style: none;
       }
 
+      /* orario, tipo e X stanno su una riga */
       li {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
-        gap: 12px;
+        gap: 8px 12px;
         margin: 8px 2px;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      /* il tipo di pausa: una tendina larga sempre uguale, così la X resta incolonnata */
+      .kind {
+        position: relative;
+        flex: none;
+        width: 220px;
+        margin: 2px;
+      }
+
+      .kind select {
+        width: 100%;
+        margin: 0;
+      }
+
+      .kind.custom input[type="text"] {
+        position: absolute;
+        top: 2px;
+        bottom: 2px;
+        left: 2px;
+        right: 30px;
+        box-sizing: border-box;
+        width: auto;
+        margin: 0;
+        padding: 0 8px;
+        box-shadow: none;
+        background: #fff;
+      }
+
+      input[type="text"]::placeholder {
+        color: var(--ink);
+        opacity: 0.45;
+      }
+
+      option {
+        color: var(--ink);
+        background: #fff;
       }
 
       /* bordo "pixel" come nel fumetto: quattro ombre piene, senza sfocatura */
       input[type="time"],
+      input[type="text"],
+      select,
       button {
         font: 22px/1 "VT323", system-ui, sans-serif;
         color: var(--ink);
@@ -156,8 +201,28 @@
         outline: none;
       }
 
-      input[type="time"] {
+      input[type="time"],
+      input[type="text"] {
         user-select: text;
+      }
+
+      /* sopra l'orario si scrive: cursore di testo, non la manina (che resta sull'icona dell'orologio) */
+      input[type="time"],
+      input[type="time"]::-webkit-datetime-edit,
+      input[type="time"]::-webkit-datetime-edit-fields-wrapper,
+      input[type="time"]::-webkit-datetime-edit-hour-field,
+      input[type="time"]::-webkit-datetime-edit-minute-field,
+      input[type="time"]::-webkit-datetime-edit-text,
+      input[type="text"] {
+        cursor: text;
+      }
+
+      input[type="time"]::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+      }
+
+      select {
+        cursor: pointer;
       }
 
       button {
@@ -188,6 +253,16 @@
         margin-top: 18px;
       }
 
+      /* larghezza fissa: "Salvato" è più lungo di "Salva" e il tasto non deve spostare il testo accanto */
+      #save {
+        min-width: 100px;
+      }
+
+      #save.saved {
+        background: var(--accent);
+        color: var(--ink);
+      }
+
       #message {
         opacity: 0.75;
       }
@@ -200,7 +275,7 @@
       <span class="track" aria-hidden="true"></span>
     </label>
 
-    <h2>Pause caffè ☕</h2>
+    <h2>Pause</h2>
     <ul id="list"></ul>
     <p class="empty" id="empty">Nessun orario: aggiungine uno.</p>
     <button type="button" id="add">+ Aggiungi orario</button>
@@ -215,22 +290,49 @@
       const list = document.getElementById("list");
       const empty = document.getElementById("empty");
       const message = document.getElementById("message");
+      const saveButton = document.getElementById("save");
+
+      // il tasto dice se gli orari che si vedono sono quelli salvati: "Salvato" finché non si cambia qualcosa
+      function markSaved() {
+        saveButton.textContent = "Salvato";
+        saveButton.classList.add("saved");
+      }
+
+      function markDirty() {
+        saveButton.textContent = "Salva";
+        saveButton.classList.remove("saved");
+      }
 
       const MAX_ROWS = 12;
       const DEFAULT_TIME = "12:30";
+
+      // i tipi di pausa arrivano dal main (schedule.js), insieme alla lunghezza massima del testo libero
+      let kinds = [];
+      let maxCustomText = 24;
 
       function updateEmpty() {
         empty.style.display = list.children.length === 0 ? "block" : "none";
       }
 
-      function addRow(time) {
+      // una riga: orario, tipo (menu a tendina), X per toglierla e, solo per "Testo mio", il testo del fumetto
+      function addRow(item) {
         const row = document.createElement("li");
 
         const input = document.createElement("input");
         input.type = "time";
-        input.value = time;
+        input.value = item.time;
         input.required = true;
         input.setAttribute("aria-label", "Orario della pausa");
+
+        const select = document.createElement("select");
+        select.setAttribute("aria-label", "Tipo di pausa");
+        for (const { kind, label } of kinds) {
+          const option = document.createElement("option");
+          option.value = kind;
+          option.textContent = label;
+          select.append(option);
+        }
+        select.value = item.kind;
 
         const remove = document.createElement("button");
         remove.type = "button";
@@ -241,17 +343,56 @@
         remove.addEventListener("click", () => {
           row.remove();
           updateEmpty();
+          markDirty();
         });
 
-        row.append(input, remove);
+        // il testo del fumetto: c'è sempre, ma si vede solo con "Testo mio", sovrapposto alla tendina
+        const text = document.createElement("input");
+        text.type = "text";
+        text.maxLength = maxCustomText;
+        text.placeholder = "Scrivi...";
+        text.value = item.text ?? "";
+        text.setAttribute("aria-label", "Testo del fumetto");
+
+        const kind = document.createElement("div");
+        kind.className = "kind";
+
+        function showKind() {
+          const custom = select.value === "custom";
+
+          kind.classList.toggle("custom", custom);
+          text.hidden = !custom;
+        }
+
+        select.addEventListener("change", () => {
+          showKind();
+          if (select.value === "custom") text.focus();
+        });
+
+        showKind();
+
+        kind.append(select, text);
+        row.append(input, kind, remove);
         list.append(row);
         updateEmpty();
         return input;
       }
 
+      // ciò che l'utente ha scritto nelle righe, nel formato che il main salva
+      function readRows() {
+        return [...list.children]
+          .map((row) => {
+            const kind = row.querySelector("select").value;
+            const item = { time: row.querySelector('input[type="time"]').value, kind };
+            if (kind === "custom") item.text = row.querySelector('input[type="text"]').value;
+            return item;
+          })
+          .filter((item) => item.time);
+      }
+
       // il nuovo orario parte tre ore dopo l'ultimo, così non resta uguale a uno già presente
       function nextTime() {
-        const values = [...list.querySelectorAll("input")].map((input) => input.value).filter(Boolean).sort();
+        const values = [...list.querySelectorAll('input[type="time"]')].map((input) => input.value).filter(Boolean).sort();
         if (values.length === 0) return DEFAULT_TIME;
 
         const [hours, minutes] = values[values.length - 1].split(":").map(Number);
@@ -265,8 +406,13 @@
         }
 
         message.textContent = "";
-        addRow(nextTime()).focus();
+        addRow({ time: nextTime(), kind: "coffee" }).focus();
+        markDirty();
       });
+
+      // qualsiasi modifica a un orario, a un tipo o a un testo: gli orari non sono più quelli salvati
+      list.addEventListener("input", markDirty);
+      list.addEventListener("change", markDirty);
 
       // il toggle vale subito; gli orari invece si salvano con "Salva"
       enabled.addEventListener("change", async () => {
@@ -281,24 +427,24 @@
       });
 
       document.getElementById("save").addEventListener("click", async () => {
-        const times = [...list.querySelectorAll("input")].map((input) => input.value).filter(Boolean);
-
         const saved = await window.alarmAPI.save({
           enabled: enabled.checked,
-          breaks: times.map((time) => ({ time, kind: "coffee" })),
+          breaks: readRows(),
         });
 
-        // il main ha tolto eventuali doppioni: si mostra ciò che è stato salvato davvero
         list.textContent = "";
-        saved.breaks.forEach((item) => addRow(item.time));
+        saved.breaks.forEach(addRow);
         updateEmpty();
 
-        message.textContent = saved.enabled ? "Salvato. Sveglia accesa." : "Salvato. Sveglia spenta.";
+        markSaved();
+        message.textContent = saved.enabled ? "Sveglia accesa." : "Sveglia spenta.";
       });
 
       window.alarmAPI.get().then((state) => {
+        kinds = state.kinds;
+        maxCustomText = state.maxCustomText;
         enabled.checked = state.enabled;
-        state.breaks.forEach((item) => addRow(item.time));
+        state.breaks.forEach(addRow);
         updateEmpty();
       });
     </script>

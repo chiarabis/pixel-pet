@@ -1,13 +1,16 @@
 // Logica della modalità sveglia, senza finestre né Electron: così si può provare con orari finti.
 // Una pausa è { time: "HH:MM", kind } e scatta una volta al giorno, all'ora indicata.
 
-// Tipi di pausa: per ora solo il caffè, ma il testo dipende dal tipo così se ne aggiungono altri
-export const BREAK_TEXT = {
-    coffee: "Coffee break ☕",
-};
+export const KINDS = [
+    { kind: "coffee", label: "Caffè ☕", text: "Coffee break ☕" },
+    { kind: "cig", label: "Sigaretta 🚬", text: "Cig break 🚬" },
+    { kind: "lunch", label: "Pranzo 🍝", text: "Lunch break 🍝" },
+    { kind: "custom", label: "Inserisci pausa ✏️", text: null },
+];
 export const DEFAULT_KIND = "coffee";
+export const MAX_CUSTOM_TEXT = 24;
+const CUSTOM_FALLBACK = "Break ⏰";
 
-// Se il PC era spento o in sospensione, la pausa parte comunque se l'ora è passata da poco
 export const GRACE_MINUTES = 15;
 export const MAX_BREAKS = 12;
 
@@ -22,7 +25,6 @@ export function minutesOf(time) {
     return hours * 60 + minutes;
 }
 
-// Giorno di oggi nel fuso del PC, per esempio "2026-11-19"
 export function todayKey(now = new Date()) {
     const month = String(now.getMonth() + 1).padStart(2, "0");
     const day = String(now.getDate()).padStart(2, "0");
@@ -30,7 +32,12 @@ export function todayKey(now = new Date()) {
     return `${now.getFullYear()}-${month}-${day}`;
 }
 
-// Tiene solo le pause valide, senza orari doppi, in ordine di ora
+export function breakText(item) {
+    if (item.kind === "custom") return item.text || CUSTOM_FALLBACK;
+
+    return KINDS.find((entry) => entry.kind === item.kind)?.text ?? KINDS[0].text;
+}
+
 export function normalizeBreaks(input) {
     if (!Array.isArray(input)) return [];
 
@@ -39,14 +46,20 @@ export function normalizeBreaks(input) {
     for (const item of input) {
         if (!isValidTime(item?.time) || byTime.has(item.time)) continue;
 
-        const kind = item.kind in BREAK_TEXT ? item.kind : DEFAULT_KIND;
-        byTime.set(item.time, { time: item.time, kind });
+        const kind = KINDS.some((entry) => entry.kind === item.kind) ? item.kind : DEFAULT_KIND;
+        const normalized = { time: item.time, kind };
+
+        if (kind === "custom") {
+            const text = typeof item.text === "string" ? item.text.replace(/\s+/g, " ").trim() : "";
+            normalized.text = [...text].slice(0, MAX_CUSTOM_TEXT).join("");
+        }
+
+        byTime.set(item.time, normalized);
     }
 
     return [...byTime.values()].sort((a, b) => minutesOf(a.time) - minutesOf(b.time)).slice(0, MAX_BREAKS);
 }
 
-// `fired` ricorda l'ultimo giorno in cui ogni orario è già scattato: { "12:30": "2026-11-19" }
 export function normalizeFired(input) {
     const fired = {};
 
@@ -59,8 +72,6 @@ export function normalizeFired(input) {
     return fired;
 }
 
-// La pausa da far scattare adesso, oppure null: l'ora è arrivata, non è passata da più di GRACE_MINUTES
-// e oggi non è ancora scattata.
 export function dueBreak(now, breaks, fired) {
     const today = todayKey(now);
     const nowMinutes = now.getHours() * 60 + now.getMinutes();
@@ -74,8 +85,6 @@ export function dueBreak(now, breaks, fired) {
     );
 }
 
-// Quando l'utente cambia gli orari: quelli già passati oggi non devono scattare subito,
-// e di quelli tolti si dimentica lo stato. Gli orari rimasti uguali tengono il loro.
 export function firedAfterEdit(now, oldBreaks, oldFired, newBreaks) {
     const today = todayKey(now);
     const nowMinutes = now.getHours() * 60 + now.getMinutes();

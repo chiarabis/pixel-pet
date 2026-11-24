@@ -6,14 +6,14 @@ import { log } from "../log.js";
 import { haltPet } from "../movement/halt.js";
 import { cancelPlaySelection } from "../play/play.js";
 import { showAlarmBubble, hideAlarmBubble, onAlarmBubbleClose } from "../bubble/bubble.js";
-import { BREAK_TEXT, dueBreak, firedAfterEdit, normalizeBreaks, todayKey } from "./schedule.js";
+import { KINDS, MAX_CUSTOM_TEXT, breakText, dueBreak, firedAfterEdit, normalizeBreaks, todayKey } from "./schedule.js";
 
 // Modalità sveglia: agli orari scelti il pet salta senza fermarsi e mostra un fumetto (es. "Coffee break ☕")
 // finché non lo si clicca. Gli orari valgono ogni giorno, finché la modalità è accesa.
 const CHECK_INTERVAL_MS = 15000;
 
-// Se nessuno clicca il gatto, la pausa finisce da sola dopo un minuto e il pet torna normale
-const ALARM_DURATION_MS = 60000;
+// Se nessuno clicca il gatto, la pausa (salto e fumetto) finisce da sola dopo 30 secondi e il pet torna normale
+const ALARM_DURATION_MS = 30000;
 
 let ringing = null; // la pausa in corso, oppure null
 let ringTimer = null; // fa finire la pausa dopo ALARM_DURATION_MS
@@ -85,11 +85,11 @@ function startAlarm(item, now) {
     petWin.showInactive();
     petWin.moveTop();
 
-    showAlarmBubble(BREAK_TEXT[item.kind]);
+    showAlarmBubble(breakText(item));
     sendToPet({ type: "start" });
 
     clearTimeout(ringTimer);
-    ringTimer = setTimeout(() => endAlarm("scaduta dopo un minuto"), ALARM_DURATION_MS);
+    ringTimer = setTimeout(() => endAlarm(`scaduta dopo ${ALARM_DURATION_MS / 1000} secondi`), ALARM_DURATION_MS);
 }
 
 export function endAlarm(reason = "chiusa") {
@@ -134,8 +134,8 @@ export function showAlarmWindow() {
     }
 
     alarmWin = new BrowserWindow({
-        width: 360,
-        height: 460,
+        width: 480,
+        height: 520,
         title: "Sveglia · Pixel Pet",
         autoHideMenuBar: true,
         minimizable: false,
@@ -163,7 +163,12 @@ export function registerAlarm() {
     onAlarmBubbleClose(endAlarm);
     ipcMain.on("pet:alarm-dismiss", endAlarm);
 
-    ipcMain.handle("alarm:get", () => getSettings().alarm);
+    // la finestra riceve anche l'elenco dei tipi di pausa, così ce n'è una sola fonte (schedule.js)
+    ipcMain.handle("alarm:get", () => ({
+        ...getSettings().alarm,
+        kinds: KINDS.map(({ kind, label }) => ({ kind, label })),
+        maxCustomText: MAX_CUSTOM_TEXT,
+    }));
 
     // il toggle della finestra vale subito, senza premere "Salva": la spunta nel menu deve dire la verità
     ipcMain.handle("alarm:set-enabled", (_event, value) => {
