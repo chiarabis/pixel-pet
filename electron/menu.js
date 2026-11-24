@@ -22,14 +22,12 @@ export function registerMenu() {
             { label: "Fammi parlare", enabled: !busy, click: () => startGreeting(win) },
             { type: "separator" },
             {
-                // la spunta mostra solo se è accesa: un clic apre la finestra, dove si accende, si spegne e si scelgono gli orari
                 label: "Modalità sveglia",
                 type: "checkbox",
                 checked: isAlarmEnabled(),
                 click: showAlarmWindow,
             },
             {
-                // senza la spunta il pet si comporta come una finestra normale: sta dietro a quella in cui lavori
                 label: "Sempre in primo piano",
                 type: "checkbox",
                 checked: isAlwaysOnTop(),
